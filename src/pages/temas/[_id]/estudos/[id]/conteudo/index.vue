@@ -75,6 +75,7 @@
       label="Criar novo conteúdo"
       texto="Crie um novo conteúdo e comece a estudar."
       titulo="Nenhum conteúdo encontrado!"
+      :mostrarVoltar="true"
     />
 
     <div v-else class="flex flex-col justify-center w-1/2 sm:w-full sm:px-2">
@@ -115,6 +116,7 @@
             :src="audioCurtoUrls[tema._id]"
             controls
             preload="metadata"
+            class="w-full"
           ></audio>
         </div>
 

@@ -49,36 +49,13 @@
         <div
           v-for="estudo in dataEstudos"
           :key="estudo.idTema"
-          class="bg-white p-4 rounded-lg shadow-md w-full flex items-start justify-between"
+          class="bg-white p-4 rounded-lg shadow-md w-full flex flex-col items-start justify-between"
         >
-          <div class="flex flex-col">
+          <div class="flex flex-row justify-between w-full">
             <h2 class="text-lg font-semibold text-slate-900">
               {{ estudo.titulo }}
             </h2>
-            <span class="text-slate-600">{{ estudo.descricao }}</span>
 
-            <div class="flex flex-row items-center gap-2">
-              <span class="text-slate-600">Status: </span>
-              <Badge
-                :status="
-                  estudo.status == 'estudando'
-                    ? 'info'
-                    : estudo.status == 'revisao'
-                    ? 'warn'
-                    : 'success'
-                "
-                >{{
-                  estudo.status == "estudando"
-                    ? "Estudando"
-                    : estudo.status == "revisao"
-                    ? "Revisão"
-                    : "Concluídos"
-                }}</Badge
-              >
-            </div>
-          </div>
-
-          <div class="flex flex-col justify-between items-end h-full">
             <div class="flex flex-row items-end gap-2">
               <button
                 @click="
@@ -115,8 +92,35 @@
                 ></svg-icon>
               </button>
             </div>
+          </div>
+
+          <span class="text-slate-600 mt-1">{{ estudo.descricao }}</span>
+
+          <div
+            class="flex flex-row sm:flex-col justify-between w-full mt-2 sm:gap-2"
+          >
+            <div class="flex flex-row items-center gap-2">
+              <span class="text-slate-600">Status: </span>
+              <Badge
+                :status="
+                  estudo.status == 'estudando'
+                    ? 'info'
+                    : estudo.status == 'revisao'
+                    ? 'warn'
+                    : 'success'
+                "
+                >{{
+                  estudo.status == "estudando"
+                    ? "Estudando"
+                    : estudo.status == "revisao"
+                    ? "Revisão"
+                    : "Concluídos"
+                }}</Badge
+              >
+            </div>
+
             <Button
-              class="p-2"
+              class="!w-auto p-2"
               @click="
                 () => {
                   atualizarStatusEstudo(

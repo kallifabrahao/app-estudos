@@ -13,7 +13,13 @@
 
     <!-- FILE INPUT CUSTOM -->
     <div v-if="type === 'file'" class="relative">
-      <input ref="fileInput" type="file" class="hidden" @change="onChange" />
+      <input
+        ref="fileInput"
+        type="file"
+        class="hidden"
+        accept="audio/*,video/mp4"
+        @change="onChange"
+      />
 
       <button
         type="button"

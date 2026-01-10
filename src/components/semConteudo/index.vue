@@ -10,7 +10,17 @@
       {{ texto }}
     </span>
 
-    <Button v-if="mostrarBotao" @click="() => fn()"> {{ label }} </Button>
+    <div class="flex flex-col gap-2 w-full">
+      <Button v-if="mostrarBotao" @click="() => fn()"> {{ label }} </Button>
+
+      <Button
+        v-if="mostrarVoltar"
+        variant="outline"
+        @click="() => router.back()"
+      >
+        Voltar
+      </Button>
+    </div>
   </div>
 </template>
 
@@ -18,6 +28,9 @@
 import NaoEncontradoJSON from "@/assets/naoEncontrado.json";
 import { Vue3Lottie } from "vue3-lottie";
 import Button from "@/components/botao/index.vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 defineProps({
   fn: {
@@ -40,6 +53,11 @@ defineProps({
     type: Boolean,
     required: false,
     default: true,
+  },
+  mostrarVoltar: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 });
 </script>
