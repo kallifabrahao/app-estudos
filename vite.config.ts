@@ -36,8 +36,8 @@ export default defineConfig({
       importMode: "sync",
     }),
     VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: false,
+      registerType: "prompt",
+      injectRegister: "auto",
 
       pwaAssets: {
         disabled: false,
@@ -48,13 +48,38 @@ export default defineConfig({
         name: "Memora",
         short_name: "memora",
         description: "Aplicativo para estudo e memorização",
-        theme_color: "#ffffff",
+        theme_color: "#020617",
+        icons: [
+          {
+            src: "memoraFundo.jpg",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
       },
 
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url, request }) => {
+              const isApiRequest = /\/api\/.*\/*.json/.test(url.pathname);
+              const isTargetMethod = ["POST", "PUT", "DELETE"].includes(
+                request.method
+              );
+              return isApiRequest && isTargetMethod;
+            },
+            handler: "NetworkOnly",
+            options: {
+              backgroundSync: {
+                name: "myQueueName",
+                options: {
+                  maxRetentionTime: 24 * 60, // 24 horas
+                },
+              },
+            },
+          },
+        ],
       },
 
       devOptions: {

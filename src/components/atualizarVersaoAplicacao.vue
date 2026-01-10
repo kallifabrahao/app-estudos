@@ -1,74 +1,68 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRegisterSW } from 'virtual:pwa-register/vue'
+import { computed, ref } from "vue";
+import { useRegisterSW } from "virtual:pwa-register/vue";
+import Button from "./botao/index.vue";
 
 // check for updates every hour
-const period = 60 * 60 * 1000
+const period = 60 * 60 * 1000;
 
-const swActivated = ref(false)
+const swActivated = ref(false);
 
 /**
  * This function will register a periodic sync check every hour, you can modify the interval as needed.
  */
 function registerPeriodicSync(swUrl: string, r: ServiceWorkerRegistration) {
-  if (period <= 0) return
+  if (period <= 0) return;
 
   setInterval(async () => {
-    if ('onLine' in navigator && !navigator.onLine)
-      return
+    if ("onLine" in navigator && !navigator.onLine) return;
 
     const resp = await fetch(swUrl, {
-      cache: 'no-store',
+      cache: "no-store",
       headers: {
-        'cache': 'no-store',
-        'cache-control': 'no-cache',
+        cache: "no-store",
+        "cache-control": "no-cache",
       },
-    })
+    });
 
-    if (resp?.status === 200)
-      await r.update()
-  }, period)
+    if (resp?.status === 200) await r.update();
+  }, period);
 }
 
 const { needRefresh, updateServiceWorker } = useRegisterSW({
   immediate: true,
   onRegisteredSW(swUrl, r) {
-    if (period <= 0) return
-    if (r?.active?.state === 'activated') {
-      swActivated.value = true
-      registerPeriodicSync(swUrl, r)
-    }
-    else if (r?.installing) {
-      r.installing.addEventListener('statechange', (e) => {
-        const sw = e.target as ServiceWorker
-        swActivated.value = sw.state === 'activated'
-        if (swActivated.value)
-          registerPeriodicSync(swUrl, r)
-      })
+    if (period <= 0) return;
+    if (r?.active?.state === "activated") {
+      swActivated.value = true;
+      registerPeriodicSync(swUrl, r);
+    } else if (r?.installing) {
+      r.installing.addEventListener("statechange", (e) => {
+        const sw = e.target as ServiceWorker;
+        swActivated.value = sw.state === "activated";
+        if (swActivated.value) registerPeriodicSync(swUrl, r);
+      });
     }
   },
-})
+});
 
 const title = computed(() => {
-  
-    
   if (needRefresh.value)
-    return 'New content available, click on reload button to update.'
-  return ''
-})
+    return "Novo conteúdo disponível, clique no botão recarregar para atualizar.";
+  return "";
+});
 
 function close() {
-  
-  needRefresh.value = false
+  needRefresh.value = false;
 }
 </script>
 
 <template>
   <div
-      v-if="needRefresh"
-      class="pwa-toast"
-      aria-labelledby="toast-message"
-      role="alert"
+    v-if="needRefresh"
+    class="pwa-toast"
+    aria-labelledby="toast-message"
+    role="alert"
   >
     <div class="message">
       <span id="toast-message">
@@ -76,12 +70,10 @@ function close() {
       </span>
     </div>
     <div class="buttons">
-      <button  type="button" class="reload" @click="updateServiceWorker()">
-        Reload
-      </button>
-      <button type="button" @click="close">
-        Close
-      </button>
+      <Button type="button" class="reload" @click="updateServiceWorker()">
+        Recarregar
+      </Button>
+      <Button variant="outline" type="button" @click="close">Fechar</Button>
     </div>
   </div>
 </template>
