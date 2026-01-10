@@ -2,10 +2,10 @@
   <transition name="fade">
     <div
       v-if="abrirModal"
-      class="fixed z-20 bg-black/50 flex items-center justify-center w-full h-screen top-0"
+      class="fixed z-20 bg-black/50 flex items-center justify-center w-full h-screen top-0 sm:px-2"
     >
       <div
-        class="flex flex-col gap-2 bg-white w-1/2 rounded-md p-4 overflow-auto"
+        class="flex flex-col gap-2 bg-white w-1/2 rounded-md p-4 overflow-auto sm:w-full"
       >
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-lg font-semibold">{{ titulo }}</h2>
