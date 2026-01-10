@@ -1,5 +1,7 @@
 import { useClient } from "@/client";
 import { useConteudo } from "./useConteudo";
+import type { AxiosResponse } from "axios";
+import { useLoading } from "@/components/loading/useLoading";
 
 export const useApiConteudo = () => {
   const {
@@ -10,6 +12,8 @@ export const useApiConteudo = () => {
     idConteudoAtual,
     manipularRespostaCriacaoConteudo,
   } = useConteudo();
+
+  const { ativarLoading } = useLoading();
 
   const obterFrases = async () => {
     const response = await useClient.get(`/frases/${idEstudoAtual.value}`);
@@ -22,16 +26,19 @@ export const useApiConteudo = () => {
   };
 
   const deletarFrase = async (idFrase: string) => {
+    ativarLoading();
     await useClient.delete(`/frases/${idFrase}`);
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
   const deletarTexto = async (idTexto: string) => {
+    ativarLoading();
     await useClient.delete(`/texto/${idTexto}`);
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
   const atualizarTexto = async () => {
+    ativarLoading();
     const formData = new FormData();
     formData.append("texto", conteudo.value.texto);
 
@@ -46,10 +53,11 @@ export const useApiConteudo = () => {
       },
     });
 
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
   const atualizarFrases = async () => {
+    ativarLoading();
     const formData = new FormData();
 
     formData.append("frase", conteudo.value.frase);
@@ -66,10 +74,10 @@ export const useApiConteudo = () => {
       },
     });
 
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
-  const criarFrase = async () => {
+  const criarFrase = async (): Promise<AxiosResponse> => {
     const formData = new FormData();
 
     formData.append("idLicao", idEstudoAtual.value);
@@ -81,16 +89,16 @@ export const useApiConteudo = () => {
 
     formData.append("audio", conteudo.value.audioCurto);
 
-    await useClient.post("/frases", formData, {
+    const resposta: AxiosResponse = await useClient.post("/frases", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    return resposta;
   };
 
-  const criarTexto = async () => {
+  const criarTexto = async (): Promise<AxiosResponse> => {
     const formData = new FormData();
 
     if (!conteudo.value.audioLongo) {
@@ -101,17 +109,17 @@ export const useApiConteudo = () => {
     formData.append("texto", conteudo.value.texto);
     formData.append("audio", conteudo.value.audioLongo);
 
-    await useClient.post("/texto", formData, {
+    const resposta: AxiosResponse = await useClient.post("/texto", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    return resposta;
   };
 
   const carregarAudio = async (audioUrl: string) => {
-    const response = await useClient(audioUrl, {
+    const response = await useClient.get(audioUrl, {
       responseType: "blob",
     });
 

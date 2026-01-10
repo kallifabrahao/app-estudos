@@ -13,7 +13,15 @@
     @fechar-modal="toggleModal('criar')"
   >
     <div class="flex flex-col gap-2">
-      <h2 class="text-slate-900 text-xl font-semibold mb-4">Criar Conteúdo</h2>
+      <h2 class="text-slate-900 text-xl font-semibold mb-4">
+        {{
+          tipoAcao === "criar"
+            ? "Criar Conteúdo"
+            : tipoAcao === "editarFrase"
+            ? "Editar Frase"
+            : "Editar Texto"
+        }}
+      </h2>
 
       <div class="flex flex-col gap-4">
         <Input
@@ -27,6 +35,7 @@
           label="Audio Curto"
           placeholder="Selecione o áudio curto"
           estilo="light"
+          :model-value="conteudo.audioCurto"
           @update:model-value="(file) => selecionarAudio(file as File, 'curto')"
           type="file"
           v-if="tipoAcao == 'criar' || tipoAcao == 'editarFrase'"
@@ -37,16 +46,23 @@
           class="w-full px-4 py-2 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white text-slate-900"
           rows="4"
           placeholder="Texto completo"
-          v-if="tipoAcao == 'criar' || tipoAcao == 'editarTexto'"
+          v-if="
+            (tipoAcao == 'criar' && !temTextoCompleto) ||
+            tipoAcao == 'editarTexto'
+          "
         ></textarea>
 
         <Input
           label="Audio Completo"
           placeholder="Selecione o áudio completo"
           estilo="light"
+          :model-value="conteudo.audioLongo"
           @update:model-value="(file) => selecionarAudio(file as File, 'longo')"
           type="file"
-          v-if="tipoAcao == 'criar' || tipoAcao == 'editarTexto'"
+          v-if="
+            (tipoAcao == 'criar' && !temTextoCompleto) ||
+            tipoAcao == 'editarTexto'
+          "
         />
       </div>
     </div>
@@ -54,7 +70,7 @@
 
   <div class="w-full h-screen bg-slate-100 flex flex-col items-center py-10">
     <SemConteudo
-      v-if="dataFrases.length === 0 || dataTextos.length === 0"
+      v-if="dataFrases.length === 0 && dataTextos.length === 0"
       :fn="() => toggleModal('criar')"
       label="Criar novo conteúdo"
       texto="Crie um novo conteúdo e comece a estudar."
@@ -68,36 +84,38 @@
         <div
           v-for="tema in dataFrases"
           :key="tema._id"
-          class="p-4 rounded-lg w-full flex items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
+          class="p-4 rounded-lg w-full flex flex-col gap-4 items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
         >
-          <div class="flex flex-col gap-2 sm:gap-4">
-            <h2 class="text-lg font-semibold text-slate-900 ml-1">
+          <div
+            class="flex flex-row gap-2 sm:gap-4 w-full justify-between items-start"
+          >
+            <p class="text-lg font-semibold text-slate-900 ml-1">
               {{ tema.frase }}
-            </h2>
+            </p>
 
-            <audio
-              :src="audioCurtoUrls[tema._id]"
-              controls
-              preload="metadata"
-            ></audio>
+            <div class="flex flex-row items-end gap-2 sm:justify-end sm:w-full">
+              <button @click="toggleModal('editarFrase', tema._id)">
+                <svg-icon
+                  type="mdi"
+                  :path="mdiPencil"
+                  class="text-slate-500 w-6 h-6 cursor-pointer"
+                ></svg-icon>
+              </button>
+              <button @click="deletarFrase(tema._id)">
+                <svg-icon
+                  type="mdi"
+                  :path="mdiTrashCanOutline"
+                  class="text-slate-500 w-6 h-6 cursor-pointer"
+                ></svg-icon>
+              </button>
+            </div>
           </div>
 
-          <div class="flex flex-row items-end gap-2">
-            <button @click="toggleModal('editarFrase', tema._id)">
-              <svg-icon
-                type="mdi"
-                :path="mdiPencil"
-                class="text-slate-500 w-6 h-6 cursor-pointer"
-              ></svg-icon>
-            </button>
-            <button @click="deletarFrase(tema._id)">
-              <svg-icon
-                type="mdi"
-                :path="mdiTrashCanOutline"
-                class="text-slate-500 w-6 h-6 cursor-pointer"
-              ></svg-icon>
-            </button>
-          </div>
+          <audio
+            :src="audioCurtoUrls[tema._id]"
+            controls
+            preload="metadata"
+          ></audio>
         </div>
 
         <h1 class="font-semibold text-[#424242] text-lg mt-6">
@@ -107,21 +125,13 @@
         <div
           v-for="tema in dataTextos"
           :key="tema._id"
-          class="p-4 rounded-lg w-full flex items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
+          class="p-4 rounded-lg w-full flex flex-col gap-4 items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
         >
-          <div class="flex flex-col gap-2 sm:gap-4">
-            <h2 class="text-lg font-semibold text-slate-900 ml-1">
+          <div class="flex flex-row gap-2 sm:gap-4 w-full justify-between">
+            <p class="text-lg font-semibold text-slate-900 ml-1">
               {{ tema.texto }}
-            </h2>
+            </p>
 
-            <audio
-              :src="audioLongoUrl[tema._id]"
-              controls
-              preload="metadata"
-            ></audio>
-          </div>
-
-          <div class="flex flex-row items-end gap-2">
             <button @click="toggleModal('editarTexto', tema._id)">
               <svg-icon
                 type="mdi"
@@ -129,14 +139,14 @@
                 class="text-slate-500 w-6 h-6 cursor-pointer"
               ></svg-icon>
             </button>
-            <button @click="deletarTexto(tema._id)">
-              <svg-icon
-                type="mdi"
-                :path="mdiTrashCanOutline"
-                class="text-slate-500 w-6 h-6 cursor-pointer"
-              ></svg-icon>
-            </button>
           </div>
+
+          <audio
+            :src="audioLongoUrl[tema._id]"
+            controls
+            preload="metadata"
+            class="w-full"
+          ></audio>
         </div>
       </div>
       <div class="mt-6 flex flex-col items-center gap-2">
@@ -179,6 +189,9 @@ import { mdiPencil, mdiTrashCanOutline } from "@mdi/js";
 import { useRoute, useRouter } from "vue-router";
 import SemConteudo from "@/components/semConteudo/index.vue";
 import { useModal } from "@/components/modal/useModal";
+import { useLoading } from "@/components/loading/useLoading";
+
+const { ativarLoading, desativarLoading } = useLoading();
 
 defineProps<{
   id: string;
@@ -196,6 +209,7 @@ const {
   tipoAcao,
   audioCurtoUrls,
   audioLongoUrl,
+  temTextoCompleto,
   criarConteudo,
   selecionarAudio,
   obterConteudo,
@@ -211,14 +225,16 @@ const {
   atualizarTexto,
   atualizarFrases,
   deletarFrase,
-  deletarTexto,
 } = useApiConteudo();
 
 const { abrirModal } = useModal();
 
 onMounted(async () => {
   idEstudoAtual.value = route.params.id as string;
+
+  ativarLoading();
   await obterConteudo(obterFrases, obterTextos);
+  desativarLoading();
 });
 
 watch(

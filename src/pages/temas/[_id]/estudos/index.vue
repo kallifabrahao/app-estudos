@@ -56,7 +56,26 @@
               {{ estudo.titulo }}
             </h2>
             <span class="text-slate-600">{{ estudo.descricao }}</span>
-            <span class="text-slate-600">Status: {{ estudo.status }}</span>
+
+            <div class="flex flex-row items-center gap-2">
+              <span class="text-slate-600">Status: </span>
+              <Badge
+                :status="
+                  estudo.status == 'estudando'
+                    ? 'info'
+                    : estudo.status == 'revisao'
+                    ? 'warn'
+                    : 'success'
+                "
+                >{{
+                  estudo.status == "estudando"
+                    ? "Estudando"
+                    : estudo.status == "revisao"
+                    ? "Revisão"
+                    : "Concluídos"
+                }}</Badge
+              >
+            </div>
           </div>
 
           <div class="flex flex-col justify-between items-end h-full">
@@ -164,6 +183,7 @@ import Button from "@/components/botao/index.vue";
 import SvgIcon from "@jamescoyle/vue-icon";
 import { mdiMagnify, mdiPencil, mdiTrashCanOutline } from "@mdi/js";
 import { useRouter } from "vue-router";
+import Badge from "@/components/badge/index.vue";
 
 defineProps<{
   _id: string;

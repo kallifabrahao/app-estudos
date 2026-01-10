@@ -1,9 +1,11 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRespostaApi } from "@/utils/manipularRespotasApi";
 import { useModal } from "@/components/modal/useModal";
-
+import { useLoading } from "@/components/loading/useLoading";
 import type { IRespostaFrases, IRespostaTextos } from "./interfaces";
+import type { AxiosResponse } from "node_modules/axios/index.d.cts";
 
+const { ativarLoading, desativarLoading } = useLoading();
 const { abrirModal } = useModal();
 const dataFrases = ref<IRespostaFrases[]>([]);
 const dataTextos = ref<IRespostaTextos[]>([]);
@@ -42,19 +44,33 @@ const obterConteudo = async (
   dataTextos.value = textos;
 };
 
-const criarConteudo = async (
-  criarFrase: () => Promise<void>,
-  criarTexto: () => Promise<void>,
-  obterFrases: () => Promise<IRespostaFrases[]>,
-  obterTextos: () => Promise<IRespostaTextos[]>
-) => {
-  await Promise.all([
-    criarFrase(),
-    criarTexto(),
-    obterConteudo(obterFrases, obterTextos),
-  ]);
+const temTextoCompleto = computed(() => {
+  return dataTextos.value.length > 0;
+});
 
-  manipularRespostaCriacaoConteudo();
+const criarConteudo = async (
+  criarFrase: () => Promise<AxiosResponse>,
+  criarTexto: () => Promise<AxiosResponse>,
+  obterFrases?: () => Promise<IRespostaFrases[]>,
+  obterTextos?: () => Promise<IRespostaTextos[]>
+) => {
+  ativarLoading();
+
+  const fraseCriada = await criarFrase();
+
+  if (fraseCriada?.status !== 201 || temTextoCompleto.value) {
+    desativarLoading();
+    return;
+  }
+
+  const textoCriado = await criarTexto();
+
+  if (textoCriado?.status !== 201) {
+    desativarLoading();
+    return;
+  }
+
+  await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
 };
 
 const manipularRespostaCriacaoConteudo = async (
@@ -63,6 +79,7 @@ const manipularRespostaCriacaoConteudo = async (
   obterTextos?: () => Promise<IRespostaTextos[]>
 ) => {
   abrirModal.value = false;
+
   useRespostaApi(201);
 
   conteudo.value = {
@@ -75,6 +92,8 @@ const manipularRespostaCriacaoConteudo = async (
   if (executarCallback) {
     await obterConteudo(obterFrases!, obterTextos!);
   }
+
+  desativarLoading();
 };
 
 const selecionarAudio = (event: File, tipo: "curto" | "longo") => {
@@ -100,6 +119,7 @@ export const useConteudo = () => {
     idConteudoAtual,
     audioCurtoUrls,
     audioLongoUrl,
+    temTextoCompleto,
     criarConteudo,
     selecionarAudio,
     obterConteudo,

@@ -4,7 +4,7 @@
       class="fixed bg-[#020617] p-2 flex items-center justify-between w-full h-16 top-0 left-0 z-10"
     >
       <div class="flex flex-row items-center gap-3">
-        <img src="/memora-logo.png" alt="Memora" class="w-40 sm:w-24" />
+        <img src="/memora-logo.png" alt="Memora" class="w-40 sm:w-28" />
 
         <button
           class="text-white font-medium text-lg"

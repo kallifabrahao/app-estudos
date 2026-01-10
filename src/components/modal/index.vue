@@ -21,7 +21,7 @@
         <form class="space-y-4" @submit.prevent="salvar">
           <slot />
 
-          <div class="flex justify-end gap-3 pt-4">
+          <div class="flex justify-end gap-3 pt-4 sm:flex-col sm:items-stretch">
             <button
               type="button"
               @click="emit('fecharModal')"
