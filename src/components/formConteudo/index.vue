@@ -21,43 +21,31 @@
 
 <script setup lang="ts">
 import Input from "@/components/input/index.vue";
-import { ref, watch } from "vue";
+import { computed } from "vue";
 
-const conteudo = ref<{ titulo: string; descricao: string }>({
-  titulo: "",
-  descricao: "",
-});
-
-const props = defineProps({
-  titulo: {
-    type: String,
-    required: true,
-  },
-  modelValue: {
-    type: Object as () => { titulo: string; descricao: string },
-    required: false,
-  },
-});
+const props = defineProps<{
+  titulo: string;
+  modelValue?: {
+    titulo: string;
+    descricao: string;
+  };
+}>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: { titulo: string; descricao: string }): void;
 }>();
 
-watch(
-  () => props.modelValue,
-  (novoValor) => {
-    if (novoValor) {
-      conteudo.value = { ...novoValor };
-    }
+const conteudo = computed({
+  get() {
+    return (
+      props.modelValue ?? {
+        titulo: "",
+        descricao: "",
+      }
+    );
   },
-  { immediate: true }
-);
-
-watch(
-  conteudo,
-  (novoValor) => {
-    emit("update:modelValue", novoValor);
+  set(value) {
+    emit("update:modelValue", value);
   },
-  { deep: true }
-);
+});
 </script>

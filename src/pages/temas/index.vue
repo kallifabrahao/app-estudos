@@ -6,8 +6,7 @@
   >
     <FormConteudo
       :titulo="tipoAcao === 'criar' ? 'Criar novo tema' : 'Editar tema'"
-      :modelValue="conteudo"
-      @update:modelValue="(novoValor) => (conteudo = novoValor)"
+      v-model="conteudo"
     />
   </ModalEstudos>
 
