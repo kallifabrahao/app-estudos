@@ -13,6 +13,7 @@ const props = defineProps<{
   label?: string;
   type?: "button" | "submit";
   variant?: "primary" | "outline";
+  size?: "sm" | "md" | "lg";
   disabled?: boolean;
 }>();
 
@@ -26,6 +27,14 @@ const buttonClasses = computed(() => {
       "border border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-slate-900",
   };
 
-  return `${base} ${variants[props.variant || "primary"]}`;
+  const tamanho = {
+    sm: "text-sm h-8",
+    md: "text-base h-10",
+    lg: "text-lg h-12",
+  };
+
+  return `${base} ${variants[props.variant || "primary"]} ${
+    tamanho[props.size || "md"]
+  }`;
 });
 </script>

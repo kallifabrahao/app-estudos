@@ -31,13 +31,9 @@
           v-model="conteudo.frase"
           v-if="tipoAcao == 'criar' || tipoAcao == 'editarFrase'"
         />
-        <Input
-          label="Audio Curto"
-          placeholder="Selecione o áudio curto"
-          estilo="light"
-          :model-value="conteudo.audioCurto"
-          @update:model-value="(file) => selecionarAudio(file as File, 'curto')"
-          type="file"
+
+        <CortarAudio
+          @cortado="(file: File) => (conteudo.audioCurto = file)"
           v-if="tipoAcao == 'criar' || tipoAcao == 'editarFrase'"
         />
 
@@ -192,6 +188,7 @@ import { useRoute, useRouter } from "vue-router";
 import SemConteudo from "@/components/semConteudo/index.vue";
 import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
+import CortarAudio from "@/components/cortarAudio/index.vue";
 
 const { ativarLoading, desativarLoading } = useLoading();
 

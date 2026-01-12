@@ -9,8 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@comercti/vue-components-hmg": "^0.24.7",
     "@jamescoyle/vue-icon": "^0.1.2",
     "@mdi/js": "^7.4.47",
+    "@meersagor/wavesurfer-vue": "^2.0.0",
     "axios": "^1.13.2",
     "jwt-decode": "^4.0.0",
     "vue": "^3.5.22",
