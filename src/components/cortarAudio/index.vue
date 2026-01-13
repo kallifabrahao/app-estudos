@@ -1,9 +1,7 @@
 <template>
   <div class="audio-editor">
-    <!-- Upload -->
     <Input type="file" accept="audio/*" estilo="light" @change="onFileChange" />
 
-    <!-- Player -->
     <audio
       v-if="audioUrl"
       ref="audioRef"
@@ -54,7 +52,6 @@ const emit = defineEmits<{
 const audioRef = ref<HTMLAudioElement | null>(null);
 const audioFile = ref<File | null>(null);
 const audioUrl = ref("");
-const audioEmitido = ref(false);
 const start = ref(0);
 const end = ref(0);
 const duration = ref(0);

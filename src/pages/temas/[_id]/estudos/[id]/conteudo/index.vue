@@ -88,7 +88,7 @@
             </p>
 
             <div class="flex flex-row items-end gap-2 sm:justify-end sm:w-full">
-              <button @click="toggleModal('editarFrase', tema._id)">
+              <button @click="toggleModal('editarFrase', tema._id, tema.frase)">
                 <svg-icon
                   type="mdi"
                   :path="mdiPencil"

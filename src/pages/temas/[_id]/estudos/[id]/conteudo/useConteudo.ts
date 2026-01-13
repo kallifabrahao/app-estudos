@@ -61,14 +61,9 @@ const criarConteudo = async (
   try {
     ativarLoading();
 
-    const fraseCriada = await criarFrase();
-
-    console.log("frase", fraseCriada);
-    console.log("tem", temTextoCompleto.value);
+    await criarFrase();
 
     if (!temTextoCompleto.value) {
-      console.log("aqui");
-
       await criarTexto();
     }
 

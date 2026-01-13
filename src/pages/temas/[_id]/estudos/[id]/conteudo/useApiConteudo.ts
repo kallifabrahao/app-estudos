@@ -13,7 +13,7 @@ export const useApiConteudo = () => {
     manipularRespostaCriacaoConteudo,
   } = useConteudo();
 
-  const { ativarLoading } = useLoading();
+  const { ativarLoading, desativarLoading } = useLoading();
 
   const obterFrases = async () => {
     const response = await useClient.get(`/frases/${idEstudoAtual.value}`);
@@ -38,43 +38,48 @@ export const useApiConteudo = () => {
   };
 
   const atualizarTexto = async () => {
-    ativarLoading();
-    const formData = new FormData();
-    formData.append("texto", conteudo.value.texto);
+    try {
+      ativarLoading();
+      const formData = new FormData();
+      formData.append("texto", conteudo.value.texto);
 
-    if (!conteudo.value.audioLongo) {
-      throw new Error("Áudio longo não selecionado");
+      if (conteudo.value.audioLongo) {
+        formData.append("audio", conteudo.value.audioLongo);
+      }
+
+      await useClient.put(`/texto/${idConteudoAtual.value}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    } catch (error) {
+      desativarLoading();
     }
-    formData.append("audio", conteudo.value.audioLongo);
-
-    await useClient.put(`/texto/${idConteudoAtual.value}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
   const atualizarFrases = async () => {
-    ativarLoading();
-    const formData = new FormData();
+    try {
+      ativarLoading();
+      const formData = new FormData();
 
-    formData.append("frase", conteudo.value.frase);
+      formData.append("frase", conteudo.value.frase);
 
-    if (!conteudo.value.audioCurto) {
-      throw new Error("Áudio curto não selecionado");
+      if (conteudo.value.audioCurto) {
+        formData.append("audio", conteudo.value.audioCurto);
+      }
+
+      await useClient.put(`/frases/${idConteudoAtual.value}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+    } catch (error) {
+      desativarLoading();
     }
-
-    formData.append("audio", conteudo.value.audioCurto);
-
-    await useClient.put(`/frases/${idConteudoAtual.value}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
   };
 
   const criarFrase = async (): Promise<AxiosResponse> => {
