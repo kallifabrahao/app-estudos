@@ -27,6 +27,7 @@ const conteudo = ref<{
 });
 const audioCurtoUrls = ref<Record<string, string>>({});
 const audioLongoUrl = ref<Record<string, string>>({});
+const audioLoading = ref<Record<string, boolean>>({});
 
 const toggleModal = (
   acao: "criarFrase" | "criarTexto" | "editarFrase" | "editarTexto",
@@ -144,6 +145,7 @@ export const useConteudo = () => {
     audioCurtoUrls,
     audioLongoUrl,
     temTextoCompleto,
+    audioLoading,
     formatarDialogo,
     criarConteudo,
     selecionarAudio,

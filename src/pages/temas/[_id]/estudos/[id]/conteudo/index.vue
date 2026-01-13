@@ -113,13 +113,20 @@
             </div>
           </div>
 
-          <audio
-            :src="audioCurtoUrls[tema._id]"
-            controls
-            preload="metadata"
-            class="w-full"
-            loading="lazy"
-          ></audio>
+          <div class="relative w-full">
+            <CarregandoAudio v-if="audioLoading[tema._id]" />
+
+            <audio
+              :src="audioCurtoUrls[tema._id]"
+              controls
+              preload="metadata"
+              class="w-full"
+              @loadstart="audioLoading[tema._id] = true"
+              @canplay="audioLoading[tema._id] = false"
+              @loadeddata="audioLoading[tema._id] = false"
+              @error="audioLoading[tema._id] = false"
+            ></audio>
+          </div>
         </div>
 
         <h1 class="font-semibold text-[#424242] text-lg mt-6">
@@ -129,7 +136,7 @@
         <ce-collapse :items="dataTextos" variant="compact" direction="column">
           <template #header="{ item: tema }">
             <div class="w-full flex justify-between items-center">
-              <h2 class="text-lg font-semibold text-slate-900">
+              <h2 class="text-lg font-semibold text-[#0891B2]">
                 {{ tema.texto.substring(0, 30) + "..." }}
               </h2>
               <button @click="toggleModal('editarTexto', tema._id, tema.texto)">
@@ -152,12 +159,20 @@
                 {{ formatarDialogo(tema.texto) }}
               </p>
 
-              <audio
-                :src="audioLongoUrl[tema._id]"
-                controls
-                preload="metadata"
-                class="w-full"
-              ></audio>
+              <div class="relative w-full">
+                <CarregandoAudio v-if="audioLoading[tema._id]" />
+
+                <audio
+                  :src="audioLongoUrl[tema._id]"
+                  controls
+                  preload="metadata"
+                  class="w-full"
+                  @loadstart="audioLoading[tema._id] = true"
+                  @canplay="audioLoading[tema._id] = false"
+                  @loadeddata="audioLoading[tema._id] = false"
+                  @error="audioLoading[tema._id] = false"
+                ></audio>
+              </div>
             </div>
           </template>
         </ce-collapse>
@@ -205,6 +220,7 @@ import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
 import CortarAudio from "@/components/cortarAudio/index.vue";
 import { CeCollapse } from "@comercti/vue-components-hmg";
+import CarregandoAudio from "@/components/carregandoAudio/index.vue";
 
 const { ativarLoading, desativarLoading } = useLoading();
 
@@ -225,6 +241,7 @@ const {
   audioCurtoUrls,
   audioLongoUrl,
   temTextoCompleto,
+  audioLoading,
   formatarDialogo,
   criarConteudo,
   obterConteudo,
@@ -256,6 +273,7 @@ watch(
   () => dataFrases.value,
   async (novoValor) => {
     for (const tema of novoValor) {
+      audioLoading.value[tema._id] = true;
       audioCurtoUrls.value[tema._id] = await carregarAudio(tema.audioUrl);
     }
   },
@@ -266,6 +284,7 @@ watch(
   () => dataTextos.value,
   async (novoValor) => {
     for (const tema of novoValor) {
+      audioLoading.value[tema._id] = true;
       audioLongoUrl.value[tema._id] = await carregarAudio(tema.audioUrl);
     }
   },
