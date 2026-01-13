@@ -215,7 +215,6 @@ const {
   temTextoCompleto,
   formatarDialogo,
   criarConteudo,
-  selecionarAudio,
   obterConteudo,
   toggleModal,
 } = useConteudo();
