@@ -25,15 +25,32 @@
         <span>{{ formatTime(end) }}</span>
       </div>
 
-      <div class="flex justify-end gap-2 mt-4">
-        <Button
-          size="sm"
-          type="button"
-          @click="playSelection"
-          class="!w-1/5 sm:!w-full"
+      <div class="flex flex-row justify-between items-center gap-2 w-full mt-4">
+        <span class="text-green-600 font-medium w-1/3" v-if="audioCortado"
+          >Trecho selecionado</span
         >
-          Ouvir trecho
-        </Button>
+
+        <div class="flex justify-end gap-2 w-full">
+          <Button
+            size="sm"
+            type="button"
+            @click="playSelection"
+            class="!w-1/5 sm:!w-full"
+          >
+            Ouvir trecho
+          </Button>
+
+          <Button
+            size="sm"
+            type="button"
+            variant="primary"
+            :disabled="travarBotao"
+            @click="emitirAudioCortado"
+            class="!w-1/5 sm:!w-full"
+          >
+            Cortar trecho
+          </Button>
+        </div>
       </div>
     </div>
   </div>
@@ -53,6 +70,8 @@ const audioRef = ref<HTMLAudioElement | null>(null);
 const audioFile = ref<File | null>(null);
 const audioUrl = ref("");
 const start = ref(0);
+const audioCortado = ref(false);
+const travarBotao = ref(false);
 const end = ref(0);
 const duration = ref(0);
 const currentTime = ref(0);
@@ -83,8 +102,10 @@ const onTimeUpdate = () => {
 const emitirAudioCortado = async () => {
   if (!audioFile.value) return;
 
+  travarBotao.value = true;
   const file = await cortarAudio(audioFile.value, start.value, end.value);
   emit("cortado", file);
+  audioCortado.value = true;
 };
 
 const onRangeChange = (value: number | number[]) => {
@@ -92,8 +113,8 @@ const onRangeChange = (value: number | number[]) => {
 
   start.value = value[0] as number;
   end.value = value[1] as number;
-
-  emitirAudioCortado();
+  audioCortado.value = false;
+  travarBotao.value = false;
 };
 
 const playSelection = () => {
@@ -212,3 +233,9 @@ function write(view: DataView, offset: number, str: string) {
   }
 }
 </script>
+
+<style>
+.bg-ce_light_green {
+  background-color: #0891b2 !important;
+}
+</style>

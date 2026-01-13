@@ -3,19 +3,19 @@
     :abrir-modal="abrirModal"
     :salvar="
       () => {
-        tipoAcao === 'criar'
+        tipoAcao === 'criarFrase' || tipoAcao === 'criarTexto'
           ? criarConteudo(criarFrase, criarTexto, obterFrases, obterTextos)
           : tipoAcao === 'editarFrase'
           ? atualizarFrases()
           : atualizarTexto();
       }
     "
-    @fechar-modal="toggleModal('criar')"
+    @fechar-modal="toggleModal(temTextoCompleto ? 'criarFrase' : 'criarTexto')"
   >
     <div class="flex flex-col gap-2">
       <h2 class="text-slate-900 text-xl font-semibold mb-4">
         {{
-          tipoAcao === "criar"
+          tipoAcao === "criarFrase" || tipoAcao === "criarTexto"
             ? "Criar Conteúdo"
             : tipoAcao === "editarFrase"
             ? "Editar Frase"
@@ -29,12 +29,18 @@
           placeholder="Digite a frase"
           estilo="light"
           v-model="conteudo.frase"
-          v-if="tipoAcao == 'criar' || tipoAcao == 'editarFrase'"
+          v-if="
+            (tipoAcao == 'criarFrase' || tipoAcao == 'editarFrase') &&
+            temTextoCompleto
+          "
         />
 
         <CortarAudio
           @cortado="(file: File) => (conteudo.audioCurto = file)"
-          v-if="tipoAcao == 'criar' || tipoAcao == 'editarFrase'"
+          v-if="
+            (tipoAcao == 'criarFrase' || tipoAcao == 'editarFrase') &&
+            temTextoCompleto
+          "
         />
 
         <textarea
@@ -43,7 +49,7 @@
           rows="4"
           placeholder="Texto completo"
           v-if="
-            (tipoAcao == 'criar' && !temTextoCompleto) ||
+            (tipoAcao == 'criarTexto' && !temTextoCompleto) ||
             tipoAcao == 'editarTexto'
           "
         ></textarea>
@@ -51,7 +57,7 @@
         <CortarAudio
           @cortado="(file: File) => (conteudo.audioLongo = file)"
           v-if="
-            (tipoAcao == 'criar' && !temTextoCompleto) ||
+            (tipoAcao == 'criarTexto' && !temTextoCompleto) ||
             tipoAcao == 'editarTexto'
           "
         />
@@ -59,10 +65,12 @@
     </div>
   </Modal>
 
-  <div class="w-full h-full bg-slate-100 flex flex-col items-center py-10">
+  <div
+    class="w-full min-h-screen h-full bg-slate-100 flex flex-col items-center py-10"
+  >
     <SemConteudo
       v-if="dataFrases.length === 0 && dataTextos.length === 0"
-      :fn="() => toggleModal('criar')"
+      :fn="() => toggleModal(temTextoCompleto ? 'criarFrase' : 'criarTexto')"
       label="Criar novo conteúdo"
       texto="Crie um novo conteúdo e comece a estudar."
       titulo="Nenhum conteúdo encontrado!"
@@ -110,6 +118,7 @@
             controls
             preload="metadata"
             class="w-full"
+            loading="lazy"
           ></audio>
         </div>
 
@@ -119,7 +128,10 @@
 
         <ce-collapse :items="dataTextos" variant="compact" direction="column">
           <template #header="{ item: tema }">
-            <div class="w-full">
+            <div class="w-full flex justify-between items-center">
+              <h2 class="text-lg font-semibold text-slate-900">
+                {{ tema.texto.substring(0, 30) + "..." }}
+              </h2>
               <button @click="toggleModal('editarTexto', tema._id, tema.texto)">
                 <svg-icon
                   type="mdi"
@@ -154,7 +166,7 @@
         <Button
           @click="
             () => {
-              toggleModal('criar');
+              toggleModal(temTextoCompleto ? 'criarFrase' : 'criarTexto');
             }
           "
         >
@@ -242,8 +254,8 @@ onMounted(async () => {
 
 watch(
   () => dataFrases.value,
-  async (newVal) => {
-    for (const tema of newVal) {
+  async (novoValor) => {
+    for (const tema of novoValor) {
       audioCurtoUrls.value[tema._id] = await carregarAudio(tema.audioUrl);
     }
   },
@@ -252,8 +264,8 @@ watch(
 
 watch(
   () => dataTextos.value,
-  async (newVal) => {
-    for (const tema of newVal) {
+  async (novoValor) => {
+    for (const tema of novoValor) {
       audioLongoUrl.value[tema._id] = await carregarAudio(tema.audioUrl);
     }
   },

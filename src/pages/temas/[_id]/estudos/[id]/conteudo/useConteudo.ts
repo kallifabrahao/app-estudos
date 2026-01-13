@@ -10,7 +10,9 @@ const { abrirModal } = useModal();
 const dataFrases = ref<IRespostaFrases[]>([]);
 const dataTextos = ref<IRespostaTextos[]>([]);
 const idEstudoAtual = ref<string>("");
-const tipoAcao = ref<"criar" | "editarFrase" | "editarTexto">("criar");
+const tipoAcao = ref<
+  "criarFrase" | "criarTexto" | "editarFrase" | "editarTexto"
+>("criarFrase");
 const idConteudoAtual = ref<string>("");
 const conteudo = ref<{
   frase: string;
@@ -27,7 +29,7 @@ const audioCurtoUrls = ref<Record<string, string>>({});
 const audioLongoUrl = ref<Record<string, string>>({});
 
 const toggleModal = (
-  acao: "criar" | "editarFrase" | "editarTexto",
+  acao: "criarFrase" | "criarTexto" | "editarFrase" | "editarTexto",
   idConteudo?: string,
   texto?: string
 ) => {
@@ -61,7 +63,7 @@ const criarConteudo = async (
   try {
     ativarLoading();
 
-    await criarFrase();
+    if (tipoAcao.value === "criarFrase") await criarFrase();
 
     if (!temTextoCompleto.value) {
       await criarTexto();
