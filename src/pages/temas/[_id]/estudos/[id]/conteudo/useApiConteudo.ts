@@ -83,11 +83,9 @@ export const useApiConteudo = () => {
     formData.append("idLicao", idEstudoAtual.value);
     formData.append("frase", conteudo.value.frase);
 
-    if (!conteudo.value.audioCurto) {
-      throw new Error("Áudio curto não selecionado");
+    if (conteudo.value.audioCurto) {
+      formData.append("audio", conteudo.value.audioCurto);
     }
-
-    formData.append("audio", conteudo.value.audioCurto);
 
     const resposta: AxiosResponse = await useClient.post("/frases", formData, {
       headers: {
@@ -101,13 +99,12 @@ export const useApiConteudo = () => {
   const criarTexto = async (): Promise<AxiosResponse> => {
     const formData = new FormData();
 
-    if (!conteudo.value.audioLongo) {
-      throw new Error("Áudio longo não selecionado");
+    if (conteudo.value.audioLongo) {
+      formData.append("audio", conteudo.value.audioLongo);
     }
 
     formData.append("idLicao", idEstudoAtual.value);
     formData.append("texto", conteudo.value.texto);
-    formData.append("audio", conteudo.value.audioLongo);
 
     const resposta: AxiosResponse = await useClient.post("/texto", formData, {
       headers: {

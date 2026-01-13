@@ -28,11 +28,15 @@ const audioLongoUrl = ref<Record<string, string>>({});
 
 const toggleModal = (
   acao: "criar" | "editarFrase" | "editarTexto",
-  idConteudo?: string
+  idConteudo?: string,
+  texto?: string
 ) => {
   abrirModal.value = !abrirModal.value;
   tipoAcao.value = acao;
   if (idConteudo) idConteudoAtual.value = idConteudo;
+
+  if (acao === "editarTexto") conteudo.value.texto = texto || "";
+  if (acao === "editarFrase") conteudo.value.frase = texto || "";
 };
 
 const obterConteudo = async (
@@ -54,23 +58,24 @@ const criarConteudo = async (
   obterFrases?: () => Promise<IRespostaFrases[]>,
   obterTextos?: () => Promise<IRespostaTextos[]>
 ) => {
-  ativarLoading();
+  try {
+    ativarLoading();
 
-  const fraseCriada = await criarFrase();
+    const fraseCriada = await criarFrase();
 
-  if (fraseCriada?.status !== 201 || temTextoCompleto.value) {
+    console.log("frase", fraseCriada);
+    console.log("tem", temTextoCompleto.value);
+
+    if (!temTextoCompleto.value) {
+      console.log("aqui");
+
+      await criarTexto();
+    }
+
+    await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
+  } catch (error) {
     desativarLoading();
-    return;
   }
-
-  const textoCriado = await criarTexto();
-
-  if (textoCriado?.status !== 201) {
-    desativarLoading();
-    return;
-  }
-
-  await manipularRespostaCriacaoConteudo(true, obterFrases, obterTextos);
 };
 
 const manipularRespostaCriacaoConteudo = async (
@@ -109,6 +114,28 @@ const selecionarAudio = (event: File, tipo: "curto" | "longo") => {
   conteudo.value.audioLongo = file;
 };
 
+function formatarDialogo(texto: string) {
+  if (!texto) return "";
+
+  const comQuebras = texto.replace(/([.!?])\s+/g, "$1\n");
+
+  const linhas = comQuebras
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const resultado = [];
+  for (let i = 0; i < linhas.length; i++) {
+    resultado.push(linhas[i]);
+
+    if ((i + 1) % 2 === 0) {
+      resultado.push("");
+    }
+  }
+
+  return resultado.join("\n");
+}
+
 export const useConteudo = () => {
   return {
     dataFrases,
@@ -120,6 +147,7 @@ export const useConteudo = () => {
     audioCurtoUrls,
     audioLongoUrl,
     temTextoCompleto,
+    formatarDialogo,
     criarConteudo,
     selecionarAudio,
     obterConteudo,

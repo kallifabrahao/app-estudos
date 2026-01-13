@@ -48,13 +48,8 @@
           "
         ></textarea>
 
-        <Input
-          label="Audio Completo"
-          placeholder="Selecione o áudio completo"
-          estilo="light"
-          :model-value="conteudo.audioLongo"
-          @update:model-value="(file) => selecionarAudio(file as File, 'longo')"
-          type="file"
+        <CortarAudio
+          @cortado="(file: File) => (conteudo.audioLongo = file)"
           v-if="
             (tipoAcao == 'criar' && !temTextoCompleto) ||
             tipoAcao == 'editarTexto'
@@ -64,7 +59,7 @@
     </div>
   </Modal>
 
-  <div class="w-full h-screen bg-slate-100 flex flex-col items-center py-10">
+  <div class="w-full h-full bg-slate-100 flex flex-col items-center py-10">
     <SemConteudo
       v-if="dataFrases.length === 0 && dataTextos.length === 0"
       :fn="() => toggleModal('criar')"
@@ -86,8 +81,10 @@
           <div
             class="flex flex-row gap-2 sm:gap-4 w-full justify-between items-start"
           >
-            <p class="text-lg font-semibold text-slate-900 ml-1">
-              {{ tema.frase }}
+            <p
+              class="text-lg font-semibold text-slate-900 ml-1 whitespace-pre-line"
+            >
+              {{ formatarDialogo(tema.frase) }}
             </p>
 
             <div class="flex flex-row items-end gap-2 sm:justify-end sm:w-full">
@@ -120,32 +117,38 @@
           Texto e áudio completo
         </h1>
 
-        <div
-          v-for="tema in dataTextos"
-          :key="tema._id"
-          class="p-4 rounded-lg w-full flex flex-col gap-4 items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
-        >
-          <div class="flex flex-row gap-2 sm:gap-4 w-full justify-between">
-            <p class="text-lg font-semibold text-slate-900 ml-1">
-              {{ tema.texto }}
-            </p>
+        <ce-collapse :items="dataTextos" variant="compact" direction="column">
+          <template #header="{ item: tema }">
+            <div class="w-full">
+              <button @click="toggleModal('editarTexto', tema._id, tema.texto)">
+                <svg-icon
+                  type="mdi"
+                  :path="mdiPencil"
+                  class="text-slate-500 w-6 h-6 cursor-pointer"
+                ></svg-icon>
+              </button>
+            </div>
+          </template>
 
-            <button @click="toggleModal('editarTexto', tema._id)">
-              <svg-icon
-                type="mdi"
-                :path="mdiPencil"
-                class="text-slate-500 w-6 h-6 cursor-pointer"
-              ></svg-icon>
-            </button>
-          </div>
+          <template #content="{ item: tema }">
+            <div
+              class="p-4 rounded-lg w-full flex flex-col gap-4 items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
+            >
+              <p
+                class="text-lg font-semibold text-slate-900 ml-1 whitespace-pre-line"
+              >
+                {{ formatarDialogo(tema.texto) }}
+              </p>
 
-          <audio
-            :src="audioLongoUrl[tema._id]"
-            controls
-            preload="metadata"
-            class="w-full"
-          ></audio>
-        </div>
+              <audio
+                :src="audioLongoUrl[tema._id]"
+                controls
+                preload="metadata"
+                class="w-full"
+              ></audio>
+            </div>
+          </template>
+        </ce-collapse>
       </div>
       <div class="mt-6 flex flex-col items-center gap-2">
         <Button
@@ -189,6 +192,7 @@ import SemConteudo from "@/components/semConteudo/index.vue";
 import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
 import CortarAudio from "@/components/cortarAudio/index.vue";
+import { CeCollapse } from "@comercti/vue-components-hmg";
 
 const { ativarLoading, desativarLoading } = useLoading();
 
@@ -209,6 +213,7 @@ const {
   audioCurtoUrls,
   audioLongoUrl,
   temTextoCompleto,
+  formatarDialogo,
   criarConteudo,
   selecionarAudio,
   obterConteudo,

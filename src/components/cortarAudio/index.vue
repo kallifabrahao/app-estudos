@@ -1,7 +1,9 @@
 <template>
   <div class="audio-editor">
-    <Input type="file" accept="audio/*" @change="onFileChange" estilo="light" />
+    <!-- Upload -->
+    <Input type="file" accept="audio/*" estilo="light" @change="onFileChange" />
 
+    <!-- Player -->
     <audio
       v-if="audioUrl"
       ref="audioRef"
@@ -10,22 +12,30 @@
       class="w-full mt-2"
     />
 
-    <div v-if="duration" class="mt-12">
-      <ce-slider
+    <div v-if="duration" class="mt-6">
+      <CeSlider
         variant="range"
-        show-value
+        :show-value="false"
         :min-value="0"
-        :max-value="parseInt(String(duration))"
-        @update:model-value="teste"
+        :max-value="duration"
+        :step="0.1"
+        @update:model-value="onRangeChange"
       />
 
-      <div class="flex justify-end gap-2 mt-3 w-full">
-        <Button type="button" size="sm" @click="playSelection"
-          >Ouvir trecho</Button
+      <div class="flex justify-between text-sm text-slate-600 mt-1">
+        <span>{{ formatTime(start) }}</span>
+        <span>{{ formatTime(end) }}</span>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <Button
+          size="sm"
+          type="button"
+          @click="playSelection"
+          class="!w-1/5 sm:!w-full"
         >
-        <Button type="button" size="sm" @click="emitirAudioCortado"
-          >Salvar trecho</Button
-        >
+          Ouvir trecho
+        </Button>
       </div>
     </div>
   </div>
@@ -34,15 +44,8 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import Input from "@/components/input/index.vue";
-import { CeSlider } from "@comercti/vue-components-hmg";
 import Button from "@/components/botao/index.vue";
-
-const teste = (value: number[] | number) => {
-  if (!Array.isArray(value)) return;
-
-  start.value = value[0] as number;
-  end.value = value[1] as number;
-};
+import { CeSlider } from "@comercti/vue-components-hmg";
 
 const emit = defineEmits<{
   (e: "cortado", file: File): void;
@@ -50,11 +53,12 @@ const emit = defineEmits<{
 
 const audioRef = ref<HTMLAudioElement | null>(null);
 const audioFile = ref<File | null>(null);
-const audioUrl = ref<string>("");
-
+const audioUrl = ref("");
+const audioEmitido = ref(false);
 const start = ref(0);
 const end = ref(0);
 const duration = ref(0);
+const currentTime = ref(0);
 
 const onFileChange = (e: Event) => {
   const input = e.target as HTMLInputElement;
@@ -64,14 +68,35 @@ const onFileChange = (e: Event) => {
 
   audioFile.value = file;
   audioUrl.value = URL.createObjectURL(file);
-
-  start.value = 0;
 };
 
 const onLoadedMetadata = () => {
   if (!audioRef.value) return;
+
   duration.value = audioRef.value.duration;
+  start.value = 0;
   end.value = duration.value;
+};
+
+const onTimeUpdate = () => {
+  if (!audioRef.value) return;
+  currentTime.value = audioRef.value.currentTime;
+};
+
+const emitirAudioCortado = async () => {
+  if (!audioFile.value) return;
+
+  const file = await cortarAudio(audioFile.value, start.value, end.value);
+  emit("cortado", file);
+};
+
+const onRangeChange = (value: number | number[]) => {
+  if (!Array.isArray(value)) return;
+
+  start.value = value[0] as number;
+  end.value = value[1] as number;
+
+  emitirAudioCortado();
 };
 
 const playSelection = () => {
@@ -80,36 +105,34 @@ const playSelection = () => {
   audioRef.value.currentTime = start.value;
   audioRef.value.play();
 
-  const stop = () => {
-    if (audioRef.value!.currentTime >= end.value) {
-      audioRef.value!.pause();
-      audioRef.value!.removeEventListener("timeupdate", stop);
+  const stopAtEnd = () => {
+    if (!audioRef.value) return;
+
+    if (audioRef.value.currentTime >= end.value) {
+      audioRef.value.pause();
+      audioRef.value.removeEventListener("timeupdate", stopAtEnd);
     }
   };
 
-  audioRef.value.addEventListener("timeupdate", stop);
+  audioRef.value.addEventListener("timeupdate", stopAtEnd);
 };
 
-/* cortar e emitir */
-const emitirAudioCortado = async () => {
-  if (!audioFile.value) return;
-
-  const file = await cortarAudio(audioFile.value, start.value, end.value);
-  emit("cortado", file);
-};
-
-/* listeners */
 watch(
   audioRef,
   (audio) => {
-    audio?.addEventListener("loadedmetadata", onLoadedMetadata);
+    if (!audio) return;
+
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("timeupdate", onTimeUpdate);
   },
   { immediate: true }
 );
 
-/* ===================== */
-/* AUDIO CUT CORE LOGIC  */
-/* ===================== */
+function formatTime(seconds: number) {
+  const min = Math.floor(seconds / 60);
+  const sec = Math.floor(seconds % 60);
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
 
 async function cortarAudio(
   file: File,
@@ -138,10 +161,10 @@ async function cortarAudio(
   return bufferToWavFile(newBuffer, file.name);
 }
 
-/* WAV encoder */
 function bufferToWavFile(buffer: AudioBuffer, name: string): File {
   const wav = audioBufferToWav(buffer);
   const blob = new Blob([wav], { type: "audio/wav" });
+
   return new File([blob], name.replace(/\.\w+$/, ".wav"), {
     type: "audio/wav",
   });
@@ -173,9 +196,10 @@ function audioBufferToWav(buffer: AudioBuffer): ArrayBuffer {
   view.setUint32(40, samples * blockAlign, true);
 
   let offset = 44;
+
   for (let i = 0; i < samples; i++) {
     for (let ch = 0; ch < numChannels; ch++) {
-      let sample = buffer.getChannelData(ch)[i];
+      let sample = buffer.getChannelData(ch)[i] ?? 0;
       sample = Math.max(-1, Math.min(1, sample));
       view.setInt16(offset, sample * 0x7fff, true);
       offset += 2;
@@ -191,9 +215,3 @@ function write(view: DataView, offset: number, str: string) {
   }
 }
 </script>
-
-<style>
-.bg-ce_light_green {
-  background-color: #06b6d4 !important;
-}
-</style>
