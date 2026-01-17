@@ -273,7 +273,7 @@
 import Modal from "@/components/modal/index.vue";
 import { useConteudo } from "./useConteudo";
 import Button from "@/components/botao/index.vue";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, watch } from "vue";
 import Input from "@/components/input/index.vue";
 import { useApiConteudo } from "./useApiConteudo";
 ///@ts-ignore
