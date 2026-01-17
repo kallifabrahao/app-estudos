@@ -18,6 +18,7 @@
         :max-value="duration"
         :step="0.1"
         @update:model-value="onRangeChange"
+        size="large"
       />
 
       <div class="flex justify-between text-sm text-slate-600 mt-1">

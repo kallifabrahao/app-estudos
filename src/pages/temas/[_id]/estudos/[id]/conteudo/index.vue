@@ -13,15 +13,25 @@
     @fechar-modal="toggleModal(temTextoCompleto ? 'criarFrase' : 'criarTexto')"
   >
     <div class="flex flex-col gap-2">
-      <h2 class="text-slate-900 text-xl font-semibold mb-4">
-        {{
-          tipoAcao === "criarFrase" || tipoAcao === "criarTexto"
-            ? "Criar Conteúdo"
-            : tipoAcao === "editarFrase"
-            ? "Editar Frase"
-            : "Editar Texto"
-        }}
-      </h2>
+      <div class="flex flex-row justify-between w-full">
+        <h2 class="text-slate-900 text-xl font-semibold mb-4 whitespace-nowrap">
+          {{
+            tipoAcao === "criarFrase" || tipoAcao === "criarTexto"
+              ? "Criar Conteúdo"
+              : tipoAcao === "editarFrase"
+              ? "Editar Frase"
+              : "Editar Texto"
+          }}
+        </h2>
+
+        <div class="flex flex-row items-center gap-2">
+          <span class="whitespace-nowrap">Criar frases</span>
+          <ce-toggle
+            v-if="tipoAcao === 'criarTexto'"
+            v-model="podeCriarFrase"
+          />
+        </div>
+      </div>
 
       <div class="flex flex-col gap-4">
         <Input
@@ -68,6 +78,27 @@
   <div
     class="w-full min-h-screen h-full bg-slate-100 flex flex-col items-center py-10"
   >
+    <div class="flex items-center gap-2">
+      <span class="text-sm">PT</span>
+      <ce-toggle
+        @update:model-value="(v) => (idiomaLeitura = v ? 'en-US' : 'pt-BR')"
+      />
+      <span class="text-sm">EN</span>
+    </div>
+
+    <select v-model="vozSelecionada">
+      <option :value="null">Voz padrão</option>
+      <option
+        v-for="voz in voices.filter((v) =>
+          v.lang.startsWith(idiomaLeitura.split('-')[0] || '')
+        )"
+        :key="voz.name"
+        :value="voz.name"
+      >
+        {{ voz.name }}
+      </option>
+    </select>
+
     <SemConteudo
       v-if="dataFrases.length === 0 && dataTextos.length === 0"
       :fn="() => toggleModal(temTextoCompleto ? 'criarFrase' : 'criarTexto')"
@@ -80,12 +111,46 @@
     <div v-else class="flex flex-col justify-center w-1/2 sm:w-full sm:px-2">
       <h1 class="text-2xl font-bold text-slate-800 mb-6">Seus conteúdos</h1>
       <div class="flex flex-col gap-4 w-full">
-        <h1 class="font-semibold text-[#424242] text-lg">Frases e áudios</h1>
+        <div
+          class="flex flex-row items-center gap-2 justify-between"
+          v-if="dataFrases.length > 0"
+        >
+          <h1 class="font-semibold text-[#424242] text-lg">Frases e áudios</h1>
+          <div class="flex flex-row items-center gap-2">
+            <button
+              class="p-2 rounded-full bg-[#0891B2]"
+              @click="router.back()"
+            >
+              <svg-icon
+                type="mdi"
+                :path="mdiKeyboardBackspace"
+                class="text-white w-6 h-6 cursor-pointer"
+              ></svg-icon>
+            </button>
+            <button
+              class="p-2 rounded-full bg-[#0891B2]"
+              @click="toggleModal('criarFrase')"
+            >
+              <svg-icon
+                type="mdi"
+                :path="mdiPlus"
+                class="text-white w-6 h-6 cursor-pointer"
+              ></svg-icon>
+            </button>
+          </div>
+        </div>
         <div
           v-for="tema in dataFrases"
           :key="tema._id"
           class="p-4 rounded-lg w-full flex flex-col gap-4 items-start justify-between bg-white shadow-md sm:flex-col sm:gap-4"
         >
+          <button
+            class="p-2 rounded-full bg-[#0891B2]"
+            @click="() => tocarFrase(tema.frase)"
+          >
+            <svg-icon type="mdi" :path="mdiPlay" class="text-white w-6 h-6" />
+          </button>
+
           <div
             class="flex flex-row gap-2 sm:gap-4 w-full justify-between items-start"
           >
@@ -208,18 +273,24 @@
 import Modal from "@/components/modal/index.vue";
 import { useConteudo } from "./useConteudo";
 import Button from "@/components/botao/index.vue";
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Input from "@/components/input/index.vue";
 import { useApiConteudo } from "./useApiConteudo";
 ///@ts-ignore
 import SvgIcon from "@jamescoyle/vue-icon";
-import { mdiPencil, mdiTrashCanOutline } from "@mdi/js";
+import {
+  mdiPencil,
+  mdiTrashCanOutline,
+  mdiKeyboardBackspace,
+  mdiPlus,
+  mdiPlay,
+} from "@mdi/js";
 import { useRoute, useRouter } from "vue-router";
 import SemConteudo from "@/components/semConteudo/index.vue";
 import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
 import CortarAudio from "@/components/cortarAudio/index.vue";
-import { CeCollapse } from "@comercti/vue-components-hmg";
+import { CeCollapse, CeToggle } from "@comercti/vue-components-hmg";
 import CarregandoAudio from "@/components/carregandoAudio/index.vue";
 
 const { ativarLoading, desativarLoading } = useLoading();
@@ -232,6 +303,16 @@ defineProps<{
 const route = useRoute();
 const router = useRouter();
 
+onMounted(() => {
+  const loadVoices = () => {
+    voices.value = speechSynthesis.getVoices();
+    console.log("v", voices.value);
+  };
+
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+});
+
 const {
   dataFrases,
   dataTextos,
@@ -242,6 +323,11 @@ const {
   audioLongoUrl,
   temTextoCompleto,
   audioLoading,
+  podeCriarFrase,
+  idiomaLeitura,
+  voices,
+  vozSelecionada,
+  tocarFrase,
   formatarDialogo,
   criarConteudo,
   obterConteudo,

@@ -28,6 +28,10 @@ const conteudo = ref<{
 const audioCurtoUrls = ref<Record<string, string>>({});
 const audioLongoUrl = ref<Record<string, string>>({});
 const audioLoading = ref<Record<string, boolean>>({});
+const podeCriarFrase = ref<boolean>(true);
+const voices = ref<SpeechSynthesisVoice[]>([]);
+const vozSelecionada = ref<string | null>(null);
+const idiomaLeitura = ref<"pt-BR" | "en-US">("pt-BR");
 
 const toggleModal = (
   acao: "criarFrase" | "criarTexto" | "editarFrase" | "editarTexto",
@@ -134,6 +138,65 @@ function formatarDialogo(texto: string) {
   return resultado.join("\n");
 }
 
+function extrairTexto(frase: string) {
+  if (idiomaLeitura.value === "en-US") {
+    return (frase.split("Filho:")[0] ?? "")
+      .replace(/Son:/gi, "")
+      .replace(/Mother:/gi, "")
+      .trim();
+  }
+
+  return frase.split("Filho:")[1]?.replace(/Mãe:/gi, "").trim();
+}
+
+function lerTexto(texto: string) {
+  if (!("speechSynthesis" in window)) return;
+
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(texto);
+  utterance.lang = idiomaLeitura.value;
+
+  // 1️⃣ tenta voz escolhida pelo usuário
+  const vozCustom = escolherVozCustom();
+  if (vozCustom) {
+    utterance.voice = vozCustom;
+  }
+  // 2️⃣ fallback automático por idioma
+  else {
+    const vozAuto = escolherVoz(idiomaLeitura.value);
+    if (vozAuto) utterance.voice = vozAuto;
+  }
+
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+
+  speechSynthesis.speak(utterance);
+}
+
+function tocarFrase(frase: string) {
+  const texto = extrairTexto(frase);
+
+  if (texto) {
+    lerTexto(texto);
+  }
+}
+
+function escolherVoz(idioma: "pt-BR" | "en-US") {
+  return (
+    voices.value.find((v) => v.lang === idioma) ||
+    voices.value.find((v) =>
+      v.lang.startsWith(String(idioma).split("-")[0]!)
+    ) ||
+    null
+  );
+}
+
+function escolherVozCustom() {
+  if (!vozSelecionada.value) return null;
+  return voices.value.find((v) => v.name === vozSelecionada.value) || null;
+}
+
 export const useConteudo = () => {
   return {
     dataFrases,
@@ -146,6 +209,11 @@ export const useConteudo = () => {
     audioLongoUrl,
     temTextoCompleto,
     audioLoading,
+    podeCriarFrase,
+    idiomaLeitura,
+    voices,
+    vozSelecionada,
+    tocarFrase,
     formatarDialogo,
     criarConteudo,
     selecionarAudio,

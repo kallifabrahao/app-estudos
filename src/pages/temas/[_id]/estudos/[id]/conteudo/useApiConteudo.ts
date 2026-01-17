@@ -10,6 +10,7 @@ export const useApiConteudo = () => {
     idEstudoAtual,
     conteudo,
     idConteudoAtual,
+    podeCriarFrase,
     manipularRespostaCriacaoConteudo,
   } = useConteudo();
 
@@ -110,6 +111,7 @@ export const useApiConteudo = () => {
 
     formData.append("idLicao", idEstudoAtual.value);
     formData.append("texto", conteudo.value.texto);
+    formData.append("criarFrase", String(podeCriarFrase.value));
 
     const resposta: AxiosResponse = await useClient.post("/texto", formData, {
       headers: {
