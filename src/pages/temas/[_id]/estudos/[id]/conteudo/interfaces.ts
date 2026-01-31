@@ -6,11 +6,6 @@ interface IFrases {
   idEstudo: string;
 }
 
-interface IAudio {
-  _id: string;
-  audioUrl: string;
-}
-
 interface IRespostaFrases {
   frases: IFrases[];
   audioUrl: string | null;
