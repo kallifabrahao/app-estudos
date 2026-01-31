@@ -1,6 +1,12 @@
 <template>
   <div class="audio-editor">
-    <Input type="file" accept="audio/*" estilo="light" @change="onFileChange" />
+    <Input
+      type="file"
+      accept="audio/*"
+      estilo="light"
+      @change="onFileChange"
+      v-if="!audioUrl && !carregandoAudio"
+    />
 
     <audio
       v-if="audioUrl"
@@ -8,6 +14,10 @@
       :src="audioUrl"
       controls
       class="w-full mt-2"
+      @loadstart="carregandoAudio = true"
+      @canplay="carregandoAudio = false"
+      @loadeddata="carregandoAudio = false"
+      @error="carregandoAudio = false"
     />
 
     <div v-if="duration" class="mt-6">
@@ -58,14 +68,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, type PropType } from "vue";
 import Input from "@/components/input/index.vue";
 import Button from "@/components/botao/index.vue";
 import { CeSlider } from "@comercti/vue-components-hmg";
 
 const emit = defineEmits<{
   (e: "cortado", file: File): void;
+  (e: "tempo", tempos: { inicioAudio: number; fimAudio: number }): void;
 }>();
+
+const props = defineProps({
+  audio: {
+    type: String as () => string | null,
+    required: false,
+  },
+  emitirTempoCortado: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const audioRef = ref<HTMLAudioElement | null>(null);
 const audioFile = ref<File | null>(null);
@@ -76,6 +98,18 @@ const travarBotao = ref(false);
 const end = ref(0);
 const duration = ref(0);
 const currentTime = ref(0);
+const carregandoAudio = ref(false);
+
+watch(
+  () => props.audio,
+  async (newAudio) => {
+    if (newAudio) {
+      carregandoAudio.value = true;
+      audioUrl.value = newAudio;
+    }
+  },
+  { immediate: true },
+);
 
 const onFileChange = (e: Event) => {
   const input = e.target as HTMLInputElement;
@@ -101,9 +135,20 @@ const onTimeUpdate = () => {
 };
 
 const emitirAudioCortado = async () => {
+  travarBotao.value = true;
+  if (props.emitirTempoCortado) {
+    emit("tempo", {
+      inicioAudio: start.value,
+      fimAudio: end.value,
+    });
+
+    audioCortado.value = true;
+
+    return;
+  }
+
   if (!audioFile.value) return;
 
-  travarBotao.value = true;
   const file = await cortarAudio(audioFile.value, start.value, end.value);
   emit("cortado", file);
   audioCortado.value = true;
@@ -144,7 +189,7 @@ watch(
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("timeupdate", onTimeUpdate);
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function formatTime(seconds: number) {
@@ -156,7 +201,7 @@ function formatTime(seconds: number) {
 async function cortarAudio(
   file: File,
   start: number,
-  end: number
+  end: number,
 ): Promise<File> {
   const ctx = new AudioContext();
   const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
@@ -168,7 +213,7 @@ async function cortarAudio(
   const newBuffer = ctx.createBuffer(
     buffer.numberOfChannels,
     endSample - startSample,
-    sampleRate
+    sampleRate,
   );
 
   for (let ch = 0; ch < buffer.numberOfChannels; ch++) {

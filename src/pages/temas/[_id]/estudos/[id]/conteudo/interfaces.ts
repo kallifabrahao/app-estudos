@@ -1,13 +1,7 @@
 interface IFrases {
   frase: string;
-  audioCurto: string;
-  _id: string;
-  idEstudo: string;
-}
-
-interface ITextos {
-  texto: string;
-  audioCompleto: string;
+  inicioAudio: number;
+  fimAudio: number;
   _id: string;
   idEstudo: string;
 }
@@ -17,12 +11,9 @@ interface IAudio {
   audioUrl: string;
 }
 
-interface IRespostaFrases extends IAudio {
-  frase: string;
+interface IRespostaFrases {
+  frases: IFrases[];
+  audioUrl: string | null;
 }
 
-interface IRespostaTextos extends IAudio {
-  texto: string;
-}
-
-export type { IFrases, ITextos, IRespostaFrases, IRespostaTextos };
+export type { IFrases, IRespostaFrases };
