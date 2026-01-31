@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, type PropType } from "vue";
+import { ref, watch } from "vue";
 import Input from "@/components/input/index.vue";
 import Button from "@/components/botao/index.vue";
 import { CeSlider } from "@comercti/vue-components-hmg";

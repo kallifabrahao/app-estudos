@@ -24,7 +24,6 @@ const conteudo = ref<{
 });
 const audioUrl = ref<string | null>(null);
 const audioLoading = ref(false);
-const editarAudio = ref<Record<string, boolean>>({});
 
 const toggleModal = (
   acao: "criar" | "editar",
@@ -119,7 +118,6 @@ export const useConteudo = () => {
     idConteudoAtual,
     audioUrl,
     audioLoading,
-    editarAudio,
     formatarDialogo,
     criarConteudo,
     selecionarAudio,

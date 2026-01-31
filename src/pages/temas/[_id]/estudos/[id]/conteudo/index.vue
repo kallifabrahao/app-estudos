@@ -188,7 +188,7 @@ import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
 import CortarAudio from "@/components/cortarAudio/index.vue";
 import CarregandoAudio from "@/components/carregandoAudio/index.vue";
-import type { IFrases, IRespostaFrases } from "./interfaces";
+import type { IFrases } from "./interfaces";
 
 const { ativarLoading, desativarLoading } = useLoading();
 
@@ -207,7 +207,6 @@ const {
   tipoAcao,
   audioLoading,
   audioUrl,
-  editarAudio,
   idConteudoAtual,
   formatarDialogo,
   criarConteudo,
@@ -220,7 +219,6 @@ const {
   obterFrases,
   carregarAudio,
   atualizarFrases,
-  deletarFrase,
 } = useApiConteudo();
 
 const { abrirModal } = useModal();
