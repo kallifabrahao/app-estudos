@@ -33,6 +33,7 @@ const setarInfoParaEditarConteudo = (item: IFrases) => {
   conteudo.value.frase = item.frase;
   conteudo.value.inicioAudio = item.inicioAudio;
   conteudo.value.fimAudio = item.fimAudio;
+  conteudo.value.traducao = item.traducao || "";
 };
 
 const toggleModal = (
