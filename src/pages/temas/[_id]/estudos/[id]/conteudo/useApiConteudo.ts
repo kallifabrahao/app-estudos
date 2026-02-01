@@ -14,14 +14,40 @@ export const useApiConteudo = () => {
   const { ativarLoading, desativarLoading } = useLoading();
 
   const obterFrases = async () => {
-    const response = await useClient.get(`/frases/${idEstudoAtual.value}`);
-    return response.data;
+    try {
+      ativarLoading();
+      const response = await useClient.get(`/frases/${idEstudoAtual.value}`);
+      return response.data;
+    } finally {
+      desativarLoading();
+    }
   };
 
   const deletarFrase = async (idFrase: string) => {
     ativarLoading();
     await useClient.delete(`/frases/${idFrase}`);
     await manipularRespostaCriacaoConteudo(true, obterFrases);
+  };
+
+  const atualizarAudio = async () => {
+    try {
+      ativarLoading();
+      const formData = new FormData();
+
+      if (!conteudo.value.audio) return;
+
+      formData.append("audio", conteudo.value.audio);
+
+      await useClient.put(`/audios/${idEstudoAtual.value}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      await manipularRespostaCriacaoConteudo(true, obterFrases);
+    } catch (error) {
+      desativarLoading();
+    }
   };
 
   const atualizarFrases = async () => {
@@ -32,10 +58,7 @@ export const useApiConteudo = () => {
       formData.append("frase", conteudo.value.frase);
       formData.append("inicioAudio", String(conteudo.value.inicioAudio));
       formData.append("fimAudio", String(conteudo.value.fimAudio));
-
-      if (conteudo.value.audio) {
-        formData.append("audio", conteudo.value.audio);
-      }
+      formData.append("traducao", conteudo.value.traducao || "");
 
       await useClient.put(`/frases/${idConteudoAtual.value}`, formData, {
         headers: {
@@ -83,5 +106,6 @@ export const useApiConteudo = () => {
     criarFrase,
     obterFrases,
     carregarAudio,
+    atualizarAudio,
   };
 };

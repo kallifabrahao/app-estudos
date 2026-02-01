@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { useRespostaApi } from "@/utils/manipularRespotasApi";
 import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
-import type { IRespostaFrases } from "./interfaces";
+import type { IFrases, IRespostaFrases } from "./interfaces";
 import type { AxiosResponse } from "node_modules/axios/index.d.cts";
 
 const { ativarLoading, desativarLoading } = useLoading();
@@ -16,14 +16,24 @@ const conteudo = ref<{
   inicioAudio: number;
   fimAudio: number;
   audio: File | null;
+  traducao?: string;
 }>({
   frase: "",
   audio: null,
   inicioAudio: 0,
   fimAudio: 0,
+  traducao: "",
 });
 const audioUrl = ref<string | null>(null);
 const audioLoading = ref(false);
+const abrirModalEditarAudio = ref(false);
+
+const setarInfoParaEditarConteudo = (item: IFrases) => {
+  idConteudoAtual.value = item._id;
+  conteudo.value.frase = item.frase;
+  conteudo.value.inicioAudio = item.inicioAudio;
+  conteudo.value.fimAudio = item.fimAudio;
+};
 
 const toggleModal = (
   acao: "criar" | "editar",
@@ -118,6 +128,8 @@ export const useConteudo = () => {
     idConteudoAtual,
     audioUrl,
     audioLoading,
+    abrirModalEditarAudio,
+    setarInfoParaEditarConteudo,
     formatarDialogo,
     criarConteudo,
     selecionarAudio,

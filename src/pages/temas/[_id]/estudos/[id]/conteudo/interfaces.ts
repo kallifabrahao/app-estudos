@@ -4,6 +4,7 @@ interface IFrases {
   fimAudio: number;
   _id: string;
   idEstudo: string;
+  traducao?: string;
 }
 
 interface IRespostaFrases {
