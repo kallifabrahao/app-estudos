@@ -146,7 +146,7 @@
                 ></svg-icon>
               </button>
 
-              <button v-if="item.inicioAudio > 0">
+              <button v-if="item.inicioAudio > 0 || item.fimAudio > 0">
                 <svg-icon
                   type="mdi"
                   :path="mdiPlay"
