@@ -10,7 +10,9 @@
     />
   </ModalEstudos>
 
-  <div class="w-full h-screen bg-slate-100 flex flex-col items-center py-10">
+  <div
+    class="w-full min-h-screen h-full bg-slate-100 flex flex-col items-center py-10"
+  >
     <SemConteudo
       v-if="dataTemas.length === 0"
       :fn="() => toggleModal('criar')"

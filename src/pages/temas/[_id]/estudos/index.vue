@@ -13,7 +13,9 @@
     />
   </ModalTema>
 
-  <div class="w-full h-screen bg-slate-100 flex flex-col items-center py-10">
+  <div
+    class="w-full min-h-screen h-full bg-slate-100 flex flex-col items-center py-10"
+  >
     <div class="flex flex-col justify-center w-1/2 gap-3 sm:w-full sm:px-2">
       <h1 class="text-2xl font-bold text-slate-800 mb-6">Seus estudos</h1>
 
@@ -60,7 +62,7 @@
               <button
                 @click="
                   router.push(
-                    `/temas/${idTemaAtual}/estudos/${estudo._id}/conteudo`
+                    `/temas/${idTemaAtual}/estudos/${estudo._id}/conteudo`,
                   )
                 "
               >
@@ -106,15 +108,15 @@
                   estudo.status == 'estudando'
                     ? 'info'
                     : estudo.status == 'revisao'
-                    ? 'warn'
-                    : 'success'
+                      ? 'warn'
+                      : 'success'
                 "
                 >{{
                   estudo.status == "estudando"
                     ? "Estudando"
                     : estudo.status == "revisao"
-                    ? "Revisão"
-                    : "Concluídos"
+                      ? "Revisão"
+                      : "Concluídos"
                 }}</Badge
               >
             </div>
@@ -128,8 +130,8 @@
                     estudo.status === 'estudando'
                       ? 'revisao'
                       : estudo.status === 'revisao'
-                      ? 'concluidos'
-                      : 'estudando'
+                        ? 'concluidos'
+                        : 'estudando',
                   );
                 }
               "
@@ -139,8 +141,8 @@
                 estudo.status === "estudando"
                   ? "revisão"
                   : estudo.status === "revisao"
-                  ? "Concluídos"
-                  : "Estudando"
+                    ? "Concluídos"
+                    : "Estudando"
               }}
             </Button>
           </div>

@@ -8,6 +8,7 @@ export const useApiConteudo = () => {
     idEstudoAtual,
     conteudo,
     idConteudoAtual,
+    idioma,
     manipularRespostaCriacaoConteudo,
   } = useConteudo();
 
@@ -55,6 +56,7 @@ export const useApiConteudo = () => {
       ativarLoading();
       const formData = new FormData();
 
+      formData.append("idioma", idioma.value);
       formData.append("frase", conteudo.value.frase);
       formData.append("inicioAudio", String(conteudo.value.inicioAudio));
       formData.append("fimAudio", String(conteudo.value.fimAudio));

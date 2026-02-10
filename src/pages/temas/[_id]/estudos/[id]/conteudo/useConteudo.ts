@@ -27,6 +27,7 @@ const conteudo = ref<{
 const audioUrl = ref<string | null>(null);
 const audioLoading = ref(false);
 const abrirModalEditarAudio = ref(false);
+const idioma = ref<"pt" | "en">("pt");
 
 const setarInfoParaEditarConteudo = (item: IFrases) => {
   idConteudoAtual.value = item._id;
@@ -130,6 +131,7 @@ export const useConteudo = () => {
     audioUrl,
     audioLoading,
     abrirModalEditarAudio,
+    idioma,
     setarInfoParaEditarConteudo,
     formatarDialogo,
     criarConteudo,

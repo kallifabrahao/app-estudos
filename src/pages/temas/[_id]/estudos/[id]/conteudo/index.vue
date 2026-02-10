@@ -101,6 +101,14 @@
               class="text-white w-6 h-6 cursor-pointer"
             ></svg-icon>
           </button>
+
+          <CeToggle
+            @update:model-value="
+              (evento: boolean) => (evento ? (idioma = 'en') : (idioma = 'pt'))
+            "
+            :model-value="idioma === 'en'"
+            :label="idioma === 'en' ? 'Inglês' : 'Português'"
+          />
         </div>
       </div>
 
@@ -174,19 +182,10 @@
         </div>
 
         <div
+          v-if="audioUrl"
           class="flex items-center gap-3 border border-gray-400 p-2 rounded-full"
         >
-          <audio
-            ref="audioPlayer"
-            :src="String(audioUrl)"
-            controls
-            preload="metadata"
-            class="w-full"
-            @loadstart="audioLoading = true"
-            @canplay="audioLoading = false"
-            @loadeddata="audioLoading = false"
-            @error="audioLoading = false"
-          />
+          <audio ref="audioPlayer" :src="audioUrl" controls class="w-full" />
 
           <button @click="toggleModal('editar')">
             <svg-icon
@@ -245,7 +244,7 @@ import SemConteudo from "@/components/semConteudo/index.vue";
 import { useModal } from "@/components/modal/useModal";
 import { useLoading } from "@/components/loading/useLoading";
 import CortarAudio from "@/components/cortarAudio/index.vue";
-import { CeTooltip } from "@comercti/vue-components-hmg";
+import { CeTooltip, CeToggle } from "@comercti/vue-components-hmg";
 
 const { ativarLoading, desativarLoading } = useLoading();
 
@@ -281,9 +280,9 @@ const {
   conteudo,
   idEstudoAtual,
   tipoAcao,
-  audioLoading,
   audioUrl,
   abrirModalEditarAudio,
+  idioma,
   formatarDialogo,
   criarConteudo,
   obterConteudo,
@@ -291,13 +290,8 @@ const {
   setarInfoParaEditarConteudo,
 } = useConteudo();
 
-const {
-  criarFrase,
-  obterFrases,
-  carregarAudio,
-  atualizarFrases,
-  atualizarAudio,
-} = useApiConteudo();
+const { criarFrase, obterFrases, atualizarFrases, atualizarAudio } =
+  useApiConteudo();
 
 const { abrirModal } = useModal();
 
@@ -314,7 +308,11 @@ watch(
 
     ativarLoading();
 
-    audioUrl.value = await carregarAudio(novoValor.audioUrl);
+    const rawToken = localStorage.getItem("token") || "";
+
+    const token = rawToken.replace(/"/g, "").replace(/'/g, "");
+
+    audioUrl.value = `${novoValor.audioUrl}?token=${token}`;
 
     desativarLoading();
   },
