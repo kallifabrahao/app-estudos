@@ -179,13 +179,18 @@
               </button>
             </div>
           </div>
+          <span>{{ item.inicioAudio }}s - {{ item.fimAudio }}s</span>
         </div>
 
         <div
-          v-if="audioUrl"
           class="flex items-center gap-3 border border-gray-400 p-2 rounded-full"
         >
-          <audio ref="audioPlayer" :src="audioUrl" controls class="w-full" />
+          <audio
+            ref="audioPlayer"
+            :src="audioUrl ? audioUrl : ''"
+            controls
+            class="w-full"
+          />
 
           <button @click="toggleModal('editar')">
             <svg-icon
@@ -290,8 +295,13 @@ const {
   setarInfoParaEditarConteudo,
 } = useConteudo();
 
-const { criarFrase, obterFrases, atualizarFrases, atualizarAudio } =
-  useApiConteudo();
+const {
+  criarFrase,
+  obterFrases,
+  atualizarFrases,
+  atualizarAudio,
+  carregarAudio,
+} = useApiConteudo();
 
 const { abrirModal } = useModal();
 
@@ -308,11 +318,7 @@ watch(
 
     ativarLoading();
 
-    const rawToken = localStorage.getItem("token") || "";
-
-    const token = rawToken.replace(/"/g, "").replace(/'/g, "");
-
-    audioUrl.value = `${novoValor.audioUrl}?token=${token}`;
+    audioUrl.value = await carregarAudio(novoValor.audioUrl);
 
     desativarLoading();
   },
